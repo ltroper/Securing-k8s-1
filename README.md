@@ -27,14 +27,14 @@ kubectl run backend --image=nginx --labels="app=web,role=backend"
 To allow the pods to communicate with each other, we need to expose them. This can be done using Kubernetes Services:
 
 ```bash
-kubectl expose pod frontend --port=80 --target-port=80
-kubectl expose pod backend --port=80 --target-port=80
+kubectl expose pod frontend --port=80 
+kubectl expose pod backend --port=80 
 ```
 
 **Explanation:**
 - `kubectl expose`: This command creates a Service object, which provides a stable IP address and DNS name for accessing the pod.
 - `--port=80`: The port that the service exposes.
-- `--target-port=80`: The port on the pod that the traffic is directed to.
+
 
 
 ### Step 3: Verify Connectivity Between Pods

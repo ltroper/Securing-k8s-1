@@ -27,23 +27,18 @@ kubectl run backend --image=nginx --restart=Never --labels="app=web,role=backend
 
 Next, we check that the `frontend` and `backend` pods can communicate with each other before applying any NetworkPolicy.
 
-1. Get the IP addresses of the pods:
+
+1. Use the `kubectl exec` command to access the `frontend` pod and `curl` the `backend` pod:
 
    ```bash
-   kubectl get pods -o wide
+   kubectl exec frontend -- curl backend
    ```
-
-   Note the IP addresses of both `frontend` and `backend`.
-
-2. Use the `kubectl exec` command to access the `frontend` pod and `curl` the `backend` pod:
-
    ```bash
-   kubectl exec frontend -- curl <backend-pod-ip>
+   kubectl exec backend -- curl front
    ```
 
-   Replace `<backend-pod-ip>` with the IP address of the `backend` pod.
-
-   If the command returns the NGINX welcome page HTML, the connectivity is confirmed.
+   
+   If the commands return the NGINX welcome page HTML, the connectivity is confirmed.
 
 ### Step 3: Apply a NetworkPolicy to Deny Ingress Traffic
 

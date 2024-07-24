@@ -13,15 +13,14 @@ In this guide, we'll explore how to enhance the security of a Kubernetes (K8s) c
 First, we create two pods, `frontend` and `backend`, both using the NGINX image. We'll use imperative commands to simplify the process.
 
 ```bash
-kubectl run frontend --image=nginx --restart=Never --labels="app=web,role=frontend"
-kubectl run backend --image=nginx --restart=Never --labels="app=web,role=backend"
+kubectl run frontend --image=nginx --labels="app=web,role=frontend"
+kubectl run backend --image=nginx --labels="app=web,role=backend"
 ```
 
 **Explanation:**
 - `kubectl run`: This command creates and runs a new pod.
 - `--image=nginx`: Specifies the container image to use, in this case, NGINX.
-- `--restart=Never`: Ensures the pod will not be restarted automatically, aligning it with pod behavior rather than a Deployment or ReplicaSet.
-- `--labels="app=web,role=frontend"`: Labels help identify and manage the pod; here, `app=web` and `role=frontend` distinguish the `frontend` pod.
+- `--labels="app=web,role=frontend"`: Labels help identify and manage pods.
 
 ### Step 2: Expose the Pods
 

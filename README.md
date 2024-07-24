@@ -23,7 +23,22 @@ kubectl run backend --image=nginx --restart=Never --labels="app=web,role=backend
 - `--restart=Never`: Ensures the pod will not be restarted automatically, aligning it with pod behavior rather than a Deployment or ReplicaSet.
 - `--labels="app=web,role=frontend"`: Labels help identify and manage the pod; here, `app=web` and `role=frontend` distinguish the `frontend` pod.
 
-### Step 2: Verify Connectivity Between Pods
+### Step 2: Expose the Pods
+
+To allow the pods to communicate with each other, we need to expose them. This can be done using Kubernetes Services:
+
+```bash
+kubectl expose pod frontend --port=80 --target-port=80
+kubectl expose pod backend --port=80 --target-port=80
+```
+
+**Explanation:**
+- `kubectl expose`: This command creates a Service object, which provides a stable IP address and DNS name for accessing the pod.
+- `--port=80`: The port that the service exposes.
+- `--target-port=80`: The port on the pod that the traffic is directed to.
+
+
+### Step 3: Verify Connectivity Between Pods
 
 Next, we check that the `frontend` and `backend` pods can communicate with each other before applying any NetworkPolicy.
 
@@ -40,7 +55,7 @@ Next, we check that the `frontend` and `backend` pods can communicate with each 
    
    If the commands return the NGINX welcome page HTML, the connectivity is confirmed.
 
-### Step 3: Apply a NetworkPolicy to Deny Ingress Traffic
+### Step 4: Apply a NetworkPolicy to Deny Ingress Traffic
 
 We now apply a NetworkPolicy that denies all ingress traffic to pods in the default namespace unless explicitly allowed.
 
@@ -66,7 +81,7 @@ kubectl apply -f deny-all-ingress.yaml
 - `podSelector: {}`: This selects all pods in the namespace. Since no specific labels are provided, it applies to all pods.
 - `policyTypes: - Ingress`: Specifies that this policy controls ingress traffic.
 
-### Step 4: Verify the NetworkPolicy
+### Step 5: Verify the NetworkPolicy
 
 To confirm that the NetworkPolicy is effective, repeat the connectivity test:
 
@@ -80,4 +95,11 @@ This time, the command should timeout or fail, indicating that the `frontend` po
 
 In this guide, we demonstrated how to secure a Kubernetes cluster by implementing a "default deny" policy for ingress traffic using NetworkPolicy. This is a fundamental step in Kubernetes security, as it restricts pod-to-pod communication, helping to minimize potential attack vectors.
 
-In the next part of this series, we will explore how to refine these policies to allow necessary traffic while maintaining security.
+In the next part of this series, we will explore how to refine these policies to allow necessary traffic while maintaining security and other ways of securing your cluster.
+
+
+
+
+
+
+

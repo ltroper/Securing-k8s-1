@@ -85,10 +85,10 @@ kubectl apply -f deny-all-ingress.yaml
 To confirm that the NetworkPolicy is effective, repeat the connectivity test:
 
 ```bash
-kubectl exec frontend -- curl <backend-pod-ip>
+kubectl exec frontend -- curl backend
 ```
 
-This time, the command should timeout or fail, indicating that the `frontend` pod cannot access the `backend` pod due to the applied NetworkPolicy.
+This time, the command should timeout or fail, indicating that the `frontend` pod cannot access the `backend` pod, and viceversa, due to the applied NetworkPolicy.
 
 ### Conclusion
 

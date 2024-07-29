@@ -54,9 +54,9 @@ Next, we check that the `frontend` and `backend` pods can communicate with each 
    
    If the commands return the NGINX welcome page HTML, the connectivity is confirmed.
 
-### Step 4: Apply a NetworkPolicy to Deny Ingress Traffic
+### Step 4: Apply a NetworkPolicy to Deny Ingress and Egress Traffic
 
-We now apply a NetworkPolicy that denies all ingress traffic to pods in the default namespace unless explicitly allowed.
+We now apply a NetworkPolicy that denies all traffic to and from pods in the default namespace unless explicitly allowed.
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -68,17 +68,17 @@ spec:
   podSelector: {}
   policyTypes:
   - Ingress
+  - Egress
 ```
 
-Save the above YAML to a file named `deny-all-ingress.yaml`, and apply it using:
+Save the above YAML to a file named `deny-all.yaml`, and apply it using:
 
 ```bash
-kubectl apply -f deny-all-ingress.yaml
+kubectl apply -f deny-all.yaml
 ```
 
 **Explanation:**
 - `podSelector: {}`: This selects all pods in the namespace. Since no specific labels are provided, it applies to all pods.
-- `policyTypes: - Ingress`: Specifies that this policy controls ingress traffic.
 
 ### Step 5: Verify the NetworkPolicy
 
@@ -90,11 +90,101 @@ kubectl exec frontend -- curl backend
 
 This time, the command should timeout or fail, indicating that the `frontend` pod cannot access the `backend` pod, and viceversa, due to the applied NetworkPolicy.
 
+Sure, here are the additional sections to allow connectivity between the `frontend` and `backend` pods by defining specific NetworkPolicies.
+
+### Step 6: Allow Egress Traffic from `frontend` to `backend`
+
+Now, we will create a NetworkPolicy to allow egress traffic from the `frontend` pod to the `backend` pod. 
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-egress-to-backend
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: frontend
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          role: backend
+    ports:
+    - protocol: TCP
+      port: 80
+```
+
+Save the above YAML to a file named `allow-frontend-egress-to-backend.yaml`, and apply it using:
+
+```bash
+kubectl apply -f allow-frontend-egress-to-backend.yaml
+```
+
+**Explanation:**
+- `podSelector: { matchLabels: { role: frontend } }`: This policy applies to pods with the label `role=frontend`.
+- `policyTypes: - Egress`: Specifies that this policy controls egress traffic.
+- `egress: - to: { podSelector: { matchLabels: { role: backend } } }`: Allows egress traffic to pods with the label `role=backend`.
+- `ports: - protocol: TCP, port: 80`: Restricts the allowed egress traffic to TCP port 80.
+
+### Step 7: Allow Ingress Traffic to `backend` from `frontend`
+
+Next, we will create a NetworkPolicy to allow ingress traffic to the `backend` pod from the `frontend` pod.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-ingress-from-frontend
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: backend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 80
+```
+
+Save the above YAML to a file named `allow-backend-ingress-from-frontend.yaml`, and apply it using:
+
+```bash
+kubectl apply -f allow-backend-ingress-from-frontend.yaml
+```
+
+**Explanation:**
+- `podSelector: { matchLabels: { role: backend } }`: This policy applies to pods with the label `role=backend`.
+- `policyTypes: - Ingress`: Specifies that this policy controls ingress traffic.
+- `ingress: - from: { podSelector: { matchLabels: { role: frontend } } }`: Allows ingress traffic from pods with the label `role=frontend`.
+- `ports: - protocol: TCP, port: 80`: Restricts the allowed ingress traffic to TCP port 80.
+
+### Step 8: Verify the Connectivity
+
+After applying these policies, verify that the `frontend` pod can communicate with the `backend` pod:
+
+```bash
+kubectl exec frontend -- curl backend
+```
+
+This command should now succeed, indicating that the `frontend` pod can access the `backend` pod on port 80, while the default deny policy ensures that all other traffic is restricted.
+
 ### Conclusion
 
-In this guide, we demonstrated how to secure a Kubernetes cluster by implementing a "default deny" policy for ingress traffic using NetworkPolicy. This is a fundamental step in Kubernetes security, as it restricts pod-to-pod communication, helping to minimize potential attack vectors.
+In this guide, we have demonstrated how to enhance the security of a Kubernetes cluster by implementing a "default deny" policy and then selectively allowing necessary traffic between specific pods using NetworkPolicies. This approach helps to minimize the attack surface by ensuring that only explicitly allowed traffic can flow between pods.
 
-In the next part of this series, we will explore how to refine these policies to allow necessary traffic while maintaining security and other ways of securing your cluster.
+In the next part of this series, we will explore how to further refine these policies to allow necessary traffic while maintaining security and other ways of securing your cluster.
+
+
 
 
 
